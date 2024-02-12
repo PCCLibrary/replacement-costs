@@ -165,6 +165,7 @@ return [
         /*
          * Package Service Providers...
          */
+        InfyOm\GeneratorBuilder\GeneratorBuilderServiceProvider::class,
 
         /*
          * Application Service Providers...

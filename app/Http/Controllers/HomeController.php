@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
+/**
+ *
+ */
 class HomeController extends Controller
 {
     /**
@@ -18,11 +22,10 @@ class HomeController extends Controller
 
     /**
      * Show the application dashboard.
-     *
-     * @return \Illuminate\Http\Response
+     * @return view
      */
     public function index()
     {
-        return view('home');
+        return view('dashboard.index');
     }
 }

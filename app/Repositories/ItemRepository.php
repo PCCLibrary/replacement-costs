@@ -7,6 +7,7 @@ use App\Models\Operation;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Laracasts\Flash\Flash;
 
 /**
  * Class ItemRepository
@@ -127,8 +128,8 @@ class ItemRepository extends BaseRepository
             Log::info($newlyAddedCount.' Items saved to the database. '.$alreadyExistsCount.' already exist.');
 
             // Flash the messages for user feedback
-            session()->flash('success', $newlyAddedCount . ' Items saved to the database.');
-            session()->flash('info', $alreadyExistsCount . ' Items already exist in the database.');
+            Flash::success( $newlyAddedCount . ' Items saved to the database.');
+            Flash::info($alreadyExistsCount . ' Items already exist in the database.');
 
             return [
                 'success' => true,

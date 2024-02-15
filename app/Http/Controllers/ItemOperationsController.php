@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Laracasts\Flash\Flash;
 
 class ItemOperationsController extends Controller
 {
@@ -48,21 +49,32 @@ class ItemOperationsController extends Controller
      */
     public function retrieveNewItemsView()
     {
-        $retrievedItems = $this->itemRepository->all();
+//        $retrievedItems = $this->itemRepository->all();
 
-        return view('operations.retrieve_new_items')->with('items', $retrievedItems);
+        //return view('operations.retrieve_new_items'); //->with('items', $retrievedItems);
+
+        // Retrieve the selected item count from the form submission or default to 25
+        $selectedItemCount = request()->input('itemCount', 25);
+
+        return view('operations.retrieve_new_items', compact('selectedItemCount'));
     }
 
     /**
-     * Retrieve and process new items from the Alma API.
+     * Retrieve and process new items from the Analytics XML Report.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|View|\Illuminate\Http\RedirectResponse
      */
-    public function retrieveNewItems()
+    public function retrieveNewItems(Request $request)
     {
+        // Retrieve the selected item count from the form submission
+        $itemCount = $request->input('itemCount');
+
         try {
-            $xmlData = $this->fetchXmlService->fetchData();
+            // Fetch XML data with the selected item count
+            $xmlData = $this->fetchXmlService->fetchData($itemCount);
             Log::info('API request successful. XML data retrieved: ' . strlen($xmlData) . ' bytes');
+
+            // Parse XML data
             $retrievedItems = $this->itemImportService->processXmlData($xmlData);
             Log::info('XML data parsed successfully. Items retrieved: ' . count($retrievedItems));
 
@@ -76,12 +88,25 @@ class ItemOperationsController extends Controller
             // Pass operation ID to the item repository for storing items
             $this->itemRepository->addOrUpdateItems($retrievedItems, $operation->id);
 
-            session()->flash('success', count($retrievedItems) . ' items retrieved and stored successfully.');
-            return redirect()->route('retrieve-new-items');
+            // Retrieve items updated during the current operation
+            $updatedItems = Item::where('last_operation_id', $operation->id)->get();
+
+//            // Flash success message
+//            Flash::success( count($retrievedItems) . ' items retrieved and stored successfully.');
+
+            // Redirect back to the retrieve new items page
+            return view('operations.retrieve_new_items', [
+                'items' => $updatedItems,
+                'selectedItemCount' => $itemCount
+            ]);
+
         } catch (Exception $e) {
             Log::error('Error fetching or processing data: ' . $e->getMessage());
-            session()->flash('error', 'Error fetching or processing data: ' . $e->getMessage());
+            // Flash error message
+            Flash::error( 'Error fetching or processing data: ' . $e->getMessage());
+            // Redirect back to the retrieve new items page
             return redirect()->route('retrieve-new-items');
         }
     }
+
 }

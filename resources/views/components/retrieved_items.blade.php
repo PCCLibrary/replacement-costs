@@ -2,7 +2,7 @@
         <div class="bg-light p-4 border-bottom">
         <!-- Check if there are items to display -->
         <h5>Retrieved Items</h5>
-        <p class="lead p-0 m-0">Items retrieved from the Alma API using entries from Alma analytics report.</p>
+        <p class="lead p-0 m-0">{{ count($items) }} Items retrieved from the Alma analytics Report.</p>
         </div>
 
         <table class="table table-striped">

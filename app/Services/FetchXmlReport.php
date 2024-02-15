@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Laracasts\Flash\Flash;
 
 /**
  * Service class responsible for fetching an XML report from an Alma Analytics API endpoint.
@@ -25,22 +26,29 @@ class FetchXmlReport
      *
      * @return string|null The XML response string or null if the request failed.
      */
-    public function fetchData()
+    public function fetchData($itemCount = null)
     {
+
+        // Use the provided item count as the limit if it's set, otherwise use the default limit
+        $limit = $itemCount ?? $this->limit;
+
         // Make the API request using Guzzle HTTP Client (via Laravel's Http facade)
         $response = Http::withHeaders(['Accept' => 'application/xml'])
             ->get($this->apiUrl, [
 
                 'path' => '/shared/Portland Community College/Reports/Tech Services Reports/mdw reports/mdw-items without Replacement cost',
                 'apikey' => $this->apiKey,
-                'limit' => $this->limit,
+                'limit' => $limit,
             ]);
 
         // Check if the API response is successful
         if (!$response->successful()) {
-            Session::flash('error', 'Error fetching data from API: ' . $response->body());
+            Flash::error('Error fetching data from API: ' . $response->body());
             return null;
         }
+
+        // report success retrieving items
+        Flash::success($itemCount . ' items retrieved from the Analytics report.');
 
         // Return the XML data from the API response
         return $response->body();

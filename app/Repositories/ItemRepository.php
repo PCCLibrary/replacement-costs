@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Item;
+use App\Models\Operation;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +39,17 @@ class ItemRepository extends BaseRepository
     }
 
     /**
+     * Count items by status.
+     *
+     * @param string $status The status of the items.
+     * @return int The count of items with the specified status.
+     */
+    public function countItemsByStatus(string $status): int
+    {
+        return Item::where('status', $status)->count();
+    }
+
+    /**
      * Save parsed, fetched items to the database.
      *
      * This method processes the provided items, checks if they exist in the database,
@@ -45,10 +57,11 @@ class ItemRepository extends BaseRepository
      * that already exist.
      *
      * @param array $items Array of items formatted for database insertion.
+     * @param int $operationId The ID of the associated operation.
      * @return array Result containing the number of items inserted, updated, and a success message.
      * @throws Exception
      */
-    public function addOrUpdateItems(array $items)
+    public function addOrUpdateItems(array $items, int $operationId)
     {
         $newlyAddedCount = 0;
         $alreadyExistsCount = 0;
@@ -99,6 +112,11 @@ class ItemRepository extends BaseRepository
                 if (Item::where('barcode', $formattedItem['barcode'])->exists()) {
                     $alreadyExistsCount++;
                 } else {
+                    // Set the operation ID for the item
+                    $formattedItem['last_operation_id'] = $operationId;
+
+//                    Log::debug('Storing in database: ' . json_encode($formattedItem));
+
                     Item::create($formattedItem);
                     $newlyAddedCount++;
                 }

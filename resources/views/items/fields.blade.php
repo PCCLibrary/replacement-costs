@@ -97,5 +97,6 @@
 <!-- Status Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('status', 'Status:') !!}
-    {!! Form::text('status', null, ['class' => 'form-control']) !!}
+    {!! Form::select('status', ['new' => 'New', 'processed' => 'Processed', 'failed' => 'Failed'], null, ['class' => 'form-control']) !!}
 </div>
+

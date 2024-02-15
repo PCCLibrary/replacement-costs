@@ -20,7 +20,8 @@
         "yajra/laravel-datatables-html": "*",
         "yajra/laravel-datatables-oracle": "*",
         "yajra/laravel-datatables-buttons": "*",
-        "ext-simplexml": "*"
+        "ext-simplexml": "*",
+      "ext-json": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

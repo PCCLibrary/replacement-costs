@@ -21,7 +21,7 @@ class CreateItemsTable extends Migration
             $table->string('library_name');
             $table->string('barcode');
             $table->string('creation_date');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->string('lifecycle');
             $table->string('physical_item_id');
             $table->string('receiving_date');
@@ -33,6 +33,8 @@ class CreateItemsTable extends Migration
             $table->integer('num_of_items_per_fund')->nullable();
             // Added status field with a default value of "new"
             $table->string('status')->default('new');
+            $table->unsignedBigInteger('last_operation_id')->nullable(); // Field to store the ID of the last operation
+            $table->foreign('last_operation_id')->references('id')->on('operations'); // Foreign key constraint
             $table->timestamps(); // 'created_at' and 'updated_at'
             $table->softDeletes();
         });

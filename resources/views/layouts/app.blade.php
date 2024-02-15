@@ -53,8 +53,8 @@
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <img src="https://assets.infyom.com/logo/blue_logo_150x150.png"
-                         class="user-image img-circle elevation-2" alt="User Image">
+{{--                    <img src="https://assets.infyom.com/logo/blue_logo_150x150.png"--}}
+{{--                         class="user-image img-circle elevation-2" alt="User Image">--}}
                     <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
@@ -89,7 +89,7 @@
 
 <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <section class="content">
+        <section class="content py-4">
             @yield('content')
         </section>
     </div>

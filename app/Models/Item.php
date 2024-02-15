@@ -6,11 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+
 /**
  * Class Item
  * @package App\Models
- * @version February 9, 2024, 10:59 pm UTC
+ * @version December 13, 2023, 10:59 pm UTC
  *
+ * @property int $id
+ * @property string $mms_id
+ * @property string $title
+ * @property string $holding_id
+ * @property string $library_name
+ * @property string $barcode
+ * @property string $creation_date
+ * @property string|null $description
+ * @property string $lifecycle
+ * @property string $physical_item_id
+ * @property string $receiving_date
+ * @property string $replacement_cost
+ * @property string $order_line_type
+ * @property string $po_line_reference
+ * @property string $reporting_code_first
+ * @property string|null $fund_expenditure
+ * @property int|null $num_of_items_per_fund
+ * @property string $status
+ * @property int|null $last_operation_id
  */
 class Item extends Model
 {
@@ -47,6 +67,8 @@ class Item extends Model
         'fund_expenditure',
         'num_of_items_per_fund',
         'status',
+        'last_operation_id',
+
     ];
 
 

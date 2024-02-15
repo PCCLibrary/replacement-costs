@@ -17,7 +17,7 @@
 
         {{-- If there are retrieved items, display them --}}
         @if (isset($retrievedItems) && count($retrievedItems) > 0)
-            @include('components.retrieved_items', ['title' => 'Retrieved','items' => $retrievedItems])
+            @include('operations.resources.views.components.retrieved_items', ['title' => 'Retrieved','items' => $retrievedItems])
         @else
             <div class="card" style="margin-top: 2em;">
                 <div class="card-body"><b>No retrieved items.</b></div>
@@ -26,7 +26,7 @@
 
         {{-- If there are updated items, display them --}}
         @if (isset($updatedItems) && count($updatedItems) > 0)
-            @include('components.item_table', ['title' => 'Updated', 'info' => 'Items updated with the Alma API', 'items' => $updatedItems])
+            @include('operations.resources.views.components.item_table', ['title' => 'Updated', 'info' => 'Items updated with the Alma API', 'items' => $updatedItems])
         @else
             <div class="card" style="margin-top: 2em;">
                 <div class="card-body"><b>No updated items.</b></div>
@@ -35,7 +35,7 @@
 
         {{-- If there are failed items, display them --}}
         @if (isset($failedItems) && count($failedItems) > 0)
-            @include('components.item_table', ['title' => 'Failed', 'info' => 'Items failed to update with the Alma API', 'items' => $failedItems])
+            @include('operations.resources.views.components.item_table', ['title' => 'Failed', 'info' => 'Items failed to update with the Alma API', 'items' => $failedItems])
         @else
             <div class="card" style="margin-top: 2em;">
                 <div class="card-body"><b>No failed items.</b></div>

@@ -19,6 +19,7 @@ class CreateOperationsTable extends Migration
             $table->integer('item_count')->nullable()->unsigned();
             $table->string('operation_type')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

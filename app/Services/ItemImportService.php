@@ -34,7 +34,7 @@ class ItemImportService
             $columnHeading = (string) $element->attributes('saw-sql', true)['columnHeading'];
             $columnMapping[$columnName] = $columnHeading; // Map column name to its display name
         }
-        Log::debug('$columnMapping:', $columnMapping);
+//        Log::debug('$columnMapping:', $columnMapping);
 
         // Output the data as an array with the column names as keys
         $data = [];

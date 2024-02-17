@@ -27,8 +27,13 @@ Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
 // Route for retrieving and saving new items from the Alma API
 Route::get('/retrieve-new-items', [ItemOperationsController::class, 'retrieveNewItemsView'])->name('retrieve-new-items');
-
 Route::post('/retrieve-new-items', [ItemOperationsController::class, 'retrieveNewItems'])->name('retrieve-new-items');
+
+
+// Route for processing items from the Alma API
+Route::get('/process-items', [ItemOperationsController::class, 'processItemsView'])->name('process-items');
+Route::post('/process-items', [ItemOperationsController::class, 'processItems'])->name('process-items');
+
 
 Route::get('generator_builder', '\InfyOm\GeneratorBuilder\Controllers\GeneratorBuilderController@builder')->name('io_generator_builder');
 

@@ -38,16 +38,16 @@ class AlmaItemService
         $format = 'application/json';
         $url = "{$this->baseApiUrl}/bibs/{$mmsId}/holdings/{$holdingId}/items/{$itemPid}?apikey={$this->apiKey}&format=json&view=brief";
 
-        Log::debug('getAlmaItem requested URL: ' . $url);
+//        Log::debug('getAlmaItem requested URL: ' . $url);
         try {
             $response = Http::withHeaders([
                 'Accept' => $format,
             ])->get($url);
 
             // Log the response data before and after decoding
-            Log::debug('Alma item data before decoding: ' . $response->body());
+//            Log::debug('Alma item data before decoding: ' . $response->body());
             $itemData = json_decode($response->body(), true);
-            Log::debug('Alma item data after decoding: ' . json_encode($itemData));
+//            Log::debug('Alma item data after decoding: ' . json_encode($itemData));
 
             if ($response->successful()) {
                 return $itemData;
@@ -88,8 +88,8 @@ class AlmaItemService
             try {
                 $response = Http::withHeaders($headers)->put($url, $requestData);
 
-                Log::info('updateAlmaItem requesting URL: ' . $url);
-                Log::info('updateAlmaItem request data: ' . json_encode($requestData)); // Log the request data
+//                Log::info('updateAlmaItem requesting URL: ' . $url);
+//                Log::info('updateAlmaItem request data: ' . json_encode($requestData)); // Log the request data
 
                 if ($response->successful()) {
                     Log::info('Updated Alma item: ' . $response->status());
@@ -115,7 +115,7 @@ class AlmaItemService
      *
      * @return array The data array with empty arrays converted to empty objects.
      */
-    private function convertEmptyArraysToObjects(array $data)
+    public function convertEmptyArraysToObjects(array $data): array
     {
         foreach ($data as $key => $value) {
             if (is_array($value) && empty($value)) {

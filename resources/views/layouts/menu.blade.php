@@ -14,16 +14,16 @@
 
 
 <li class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ route('process-items') }}" class="nav-link {{ Request::is('process-*') ? 'active' : '' }}">
         <p>Process Items</p>
     </a>
 </li>
 
-<li class="nav-item">
-    <a href="#" class="nav-link">
-        <p>Reports</p>
-    </a>
-</li>
+{{--<li class="nav-item">--}}
+{{--    <a href="#" class="nav-link">--}}
+{{--        <p>Reports</p>--}}
+{{--    </a>--}}
+{{--</li>--}}
 
 <li class="nav-divider"><hr class="border-bottom border-1 border-white"></li> <!-- Divider -->
 

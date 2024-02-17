@@ -14,6 +14,11 @@
                     </a>
                 </div>
             </div>
+            <div class="row">
+                <div class="col">
+                    <p class="lead">View, edit, and create new items stored in the application database.</p>
+                </div>
+            </div>
         </div>
     </section>
 

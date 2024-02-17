@@ -1,45 +1,58 @@
-@extends('layouts.app.blade')
+@extends('layouts.app')
 
 @section('content')
-    @if(!isset($retrievedItems) && !isset($failedItems))
-        <h5>No Items Found</h5>
-        <p>No items in the database. Retrieve new items from the Alma analytics report.</p>
-        <a class="btn btn-primary" href="{{ route('items.retrieve') }}">Retrieve New Items</a>
-    @else
-        <h5>Process Items</h5>
-        <form method="GET" action="{{ route('items.handle_form') }}">
-            <div class="form-group">
-                <label for="itemCount">Number of Items to Process:</label>
-                <input type="number" class="form-control" id="itemCount" name="count" value="{{ old('count', 10) }}">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Process Items</h1>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Process Items</button>
-        </form>
+            <div class="row">
+                <div class="col">
+                    <p class="lead">Process items with the Alma API to update replacement costs.</p>
+                    <p>Items with the status of 'new' are read from the application database, and used with the Alma
+                        holdings API to retrieve an Alma item. The replacement_cost field is updated, the data is
+                        reformatted, and then the change is saved in Alma using the Holdings API.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        {{-- If there are retrieved items, display them --}}
-        @if (isset($retrievedItems) && count($retrievedItems) > 0)
-            @include('operations.resources.views.components.retrieved_items', ['title' => 'Retrieved','items' => $retrievedItems])
-        @else
-            <div class="card" style="margin-top: 2em;">
-                <div class="card-body"><b>No retrieved items.</b></div>
+    <div class="content px-3">
+
+        @include('flash::message')
+
+        <div class="clearfix"></div>
+
+        <div class="card">
+            <div class="card-body">
+                @include('components.item_count_form',
+                        ['selectedItemCount' => $selectedItemCount,
+                        'operation' => 'Process',
+                        'actionRoute' => $actionRoute
+                        ])
             </div>
+        </div>
+
+
+        @if(isset($processedItems) && count($processedItems) > 0)
+            @include('components.items_table', [
+                'items' => $processedItems,
+                'title' => 'Processed Items',
+                'description' => 'successfully updated in the Alma API.'
+            ])
         @endif
 
-        {{-- If there are updated items, display them --}}
-        @if (isset($updatedItems) && count($updatedItems) > 0)
-            @include('operations.resources.views.components.item_table', ['title' => 'Updated', 'info' => 'Items updated with the Alma API', 'items' => $updatedItems])
-        @else
-            <div class="card" style="margin-top: 2em;">
-                <div class="card-body"><b>No updated items.</b></div>
-            </div>
+        @if(isset($failedItems) && count($failedItems) > 0)
+            @include('components.items_table', [
+                'items' => $failedItems,
+                'title' => 'Failed Items',
+                'description' => 'failed to retrieve or update in the Alma API.'
+            ])
         @endif
 
-        {{-- If there are failed items, display them --}}
-        @if (isset($failedItems) && count($failedItems) > 0)
-            @include('operations.resources.views.components.item_table', ['title' => 'Failed', 'info' => 'Items failed to update with the Alma API', 'items' => $failedItems])
-        @else
-            <div class="card" style="margin-top: 2em;">
-                <div class="card-body"><b>No failed items.</b></div>
-            </div>
-        @endif
-    @endif
+
+    </div>
+
 @endsection

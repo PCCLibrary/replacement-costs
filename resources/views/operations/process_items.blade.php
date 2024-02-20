@@ -30,6 +30,7 @@
                 @include('components.item_count_form',
                         ['selectedItemCount' => $selectedItemCount,
                         'operation' => 'Process',
+                        'operationType' => 'process',
                         'actionRoute' => $actionRoute
                         ])
             </div>

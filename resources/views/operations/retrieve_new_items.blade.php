@@ -32,7 +32,10 @@
                         'operation' => 'Retrieve',
                         'actionRoute' => $actionRoute
                         ])
+
+                @include('components.continue_retrieval_button')
             </div>
+
         </div>
 
         @include('components.retrieved_items_table')

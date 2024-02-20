@@ -8,6 +8,7 @@ use SimpleXMLElement;
 
 class ItemImportService
 {
+    private $schema; // Property to store the schema
 
     /**
      * Parses the XML response and extracts data into an array of associative arrays.
@@ -24,34 +25,56 @@ class ItemImportService
         $ns = $xml->getNamespaces(true);
         $xml->registerXPathNamespace('ns', $ns['']);
 
-        // Get the rowset element
-        $rowset = $xml->xpath('//ns:rowset/ns:Row');
+        // Extract and store the schema if it's not already set
+        if (!$this->schema) {
+            $this->extractSchema($xml);
+        }
 
-        // Create a mapping of column names to their display names
-        $columnMapping = [];
+        // Extract data using the stored schema
+        $data = $this->extractData($xml);
+
+        return $data;
+    }
+
+    /**
+     * Extracts the schema from the XML response and stores it.
+     *
+     * @param SimpleXMLElement $xml The XML response.
+     */
+    private function extractSchema(SimpleXMLElement $xml): void
+    {
+        $schema = [];
         foreach ($xml->QueryResult->ResultXml->rowset->children('xsd', true)->schema->complexType->sequence->element as $element) {
             $columnName = (string) $element->attributes()['name']; // Get the column name e.g., Column0
             $columnHeading = (string) $element->attributes('saw-sql', true)['columnHeading'];
-            $columnMapping[$columnName] = $columnHeading; // Map column name to its display name
+            $schema[] = ['name' => $columnName, 'columnHeading' => $columnHeading];
         }
-//        Log::debug('$columnMapping:', $columnMapping);
+        $this->schema = $schema;
+    }
 
-        // Output the data as an array with the column names as keys
+    /**
+     * Extracts data from the XML response using the stored schema.
+     *
+     * @param SimpleXMLElement $xml The XML response.
+     * @return array An array of associative arrays containing the extracted data.
+     */
+    private function extractData(SimpleXMLElement $xml): array
+    {
+        $rowset = $xml->xpath('//ns:rowset/ns:Row');
         $data = [];
         foreach ($rowset as $row) {
             $rowData = [];
-            foreach ($columnMapping as $columnName => $display) {
+            foreach ($this->schema as $column) {
+                $columnName = $column['name'];
+                $columnHeading = $column['columnHeading'];
                 $value = isset($row->$columnName) ? (string) $row->$columnName : null; // Default to null if missing
-                $rowData[$display] = $value;
-//                Log::debug("Column: $columnName, Display: $display, Value: $value");
+                $rowData[$columnHeading] = $value;
             }
             $data[] = $rowData;
             // Log the successful parsing of XML data
             Log::info('row data:' . json_encode($rowData));
         }
-
         return $data;
     }
-
-
 }
+

@@ -1,5 +1,6 @@
 <form action="{{ $actionRoute }}" method="POST" class="row g-3 align-items-center">
     @csrf
+    <input type="hidden" name="operationType" value="{{ $operationType }}">
     <div class="col-12 col-md-2">
         <label for="itemCount" class="col-form-label">Number of Items to {{ $operation }}:</label>
     </div>

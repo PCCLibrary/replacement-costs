@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Laracasts\Flash\Flash;
 
@@ -15,7 +16,7 @@ use Laracasts\Flash\Flash;
  * @version 1.0
  */
 
-class FetchXmlReport
+class FetchXmlService
 {
     private $apiUrl = 'https://api-na.hosted.exlibrisgroup.com/almaws/v1/analytics/reports';
     private $apiKey = 'l7xxd7d119c8cd934725af925d147c209cdf';
@@ -26,7 +27,7 @@ class FetchXmlReport
      *
      * @return string|null The XML response string or null if the request failed.
      */
-    public function fetchData($itemCount = null)
+    public function fetchData($itemCount = null, $resumptionToken = null)
     {
 
         // Use the provided item count as the limit if it's set, otherwise use the default limit

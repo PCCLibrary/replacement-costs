@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Operation;
 use App\Services\AlmaItemService;
-use App\Services\FetchXmlReport;
+use App\Services\FetchXmlService;
 use App\Services\ItemImportService;
 use App\Repositories\ItemRepository;
 use Illuminate\Contracts\View\View;
@@ -13,10 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Laracasts\Flash\Flash;
+use SimpleXMLElement;
 
 class ItemOperationsController extends Controller
 {
-    protected FetchXmlReport $fetchXmlService;
+    protected FetchXmlService $fetchXmlService;
     protected ItemImportService $itemImportService;
     protected ItemRepository $itemRepository;
     protected AlmaItemService $almaItemService;
@@ -24,17 +25,17 @@ class ItemOperationsController extends Controller
     /**
      * Construct the ItemOperationsController.
      *
-     * @param  FetchXmlReport    $fetchXmlService    Service for fetching XML reports.
+     * @param  FetchXmlService    $fetchXmlService    Service for fetching XML reports.
      * @param  ItemImportService $itemImportService  Service for importing items.
      * @param  ItemRepository    $itemRepository     Repository for managing items.
      * @param  AlmaItemService   $almaItemService        Service for interacting with Alma API.
      * @return void
      */
     public function __construct(
-        FetchXmlReport $fetchXmlService,
+        FetchXmlService   $fetchXmlService,
         ItemImportService $itemImportService,
-        ItemRepository $itemRepository,
-        AlmaItemService $almaItemService
+        ItemRepository    $itemRepository,
+        AlmaItemService   $almaItemService
     ) {
         $this->fetchXmlService = $fetchXmlService;
         $this->itemImportService = $itemImportService;
@@ -49,35 +50,55 @@ class ItemOperationsController extends Controller
      */
     public function retrieveNewItemsView()
     {
-
-        // Retrieve the selected item count from the form submission or default to 25
-        $selectedItemCount = request()->input('itemCount', 25);
-
-       // return view('operations.retrieve_new_items', compact('selectedItemCount'));
-
+        // Get the action route for the form submission
         $actionRoute = route('retrieve-new-items');
-        return view('operations.retrieve_new_items', compact('selectedItemCount', 'actionRoute'));
 
+        // Set isFinished to true for a new retrieval
+        $isFinished = "true";
+
+        // Set the default selected item count
+        $selectedItemCount = '25';
+
+        // Set the default resumption token to empty string
+        $resumptionToken = '';
+
+        // Set the operation type
+        $operationType = 'new';
+
+        // clear the session token
+        session(['resumptionToken' => '']);
+
+        // Return the view with the necessary variables
+        return view('operations.retrieve_new_items', compact('actionRoute', 'isFinished', 'selectedItemCount', 'resumptionToken', 'operationType'));
     }
+
 
     /**
      * Retrieve and process new items from the Analytics XML Report.
      *
+     * @param Request $request The HTTP request object.
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|View|\Illuminate\Http\RedirectResponse
      */
     public function retrieveNewItems(Request $request)
     {
-        // Retrieve the selected item count from the form submission
-        $itemCount = $request->input('itemCount');
-
         try {
-            // Fetch XML data with the selected item count
-            $xmlData = $this->fetchXmlService->fetchData($itemCount);
-            Log::info('API request successful. XML data retrieved: ' . strlen($xmlData) . ' bytes');
+            // Retrieve the selected item count from the form submission
+            $itemCount = $request->input('itemCount');
+
+            // Retrieve the resumption token from the request (if present)
+            $resumptionToken = $request->input('resumptionToken');
+
+            // Retrieve the operation type from the form submission
+            $operationType = $request->input('operationType');
+
+            // Fetch XML data with the selected item count and resumption token (if present)
+            $xmlData = $this->fetchXmlService->fetchData($itemCount, $resumptionToken);
+
+            // Extract the resumption token from the XML data
+            $resumptionToken = $this->extractResumptionToken($xmlData);
 
             // Parse XML data
             $retrievedItems = $this->itemImportService->processXmlData($xmlData);
-            Log::info('XML data parsed successfully. Items retrieved: ' . count($retrievedItems));
 
             // Store the operation details in the operations table
             $operation = Operation::create([
@@ -92,23 +113,83 @@ class ItemOperationsController extends Controller
             // Retrieve items updated during the current operation
             $updatedItems = Item::where('last_operation_id', $operation->id)->get();
 
-            // return the view with the variables
+            // Parse XML data to extract the IsFinished flag
+            $isFinished = $this->parseIsFinishedFlag($xmlData);
+
+            // Return the view with the variables
             $actionRoute = route('retrieve-new-items');
             return view('operations.retrieve_new_items', [
                 'items' => $updatedItems,
                 'selectedItemCount' => $itemCount,
-                'actionRoute' => $actionRoute
+                'actionRoute' => $actionRoute,
+                'isFinished' => $isFinished,
+                'resumptionToken' => $resumptionToken,
+                'operationType' => $operationType
             ]);
-
-
         } catch (Exception $e) {
             Log::error('Error fetching or processing data: ' . $e->getMessage());
             // Flash error message
-            Flash::error( 'Error fetching or processing data: ' . $e->getMessage());
+            Flash::error('Error fetching or processing data: ' . $e->getMessage());
             // Redirect back to the retrieve new items page
-            return redirect()->route('retrieve-new-items');
+            return redirect()->route('retrieve-new-items', ['isFinished' => true, 'resumptionToken' => null]);
         }
     }
+
+
+
+
+
+    /**
+     * Parses the XML data to extract the IsFinished flag.
+     *
+     * @param string $xmlData
+     * @return string
+     * @throws Exception
+     */
+    private function parseIsFinishedFlag(string $xmlData): string
+    {
+        $xml = new SimpleXMLElement($xmlData);
+        $isFinished = isset($xml->QueryResult->IsFinished) ? (string) $xml->QueryResult->IsFinished : 'true';
+
+        return $isFinished;
+    }
+
+
+    /**
+     * Extracts the resumption token from the XML data and sets it in the session.
+     *
+     * @param string|null $xmlData
+     * @return string|null The extracted resumption token or null if not found.
+     */
+    private function extractResumptionToken(?string $xmlData)
+    {
+        if (!$xmlData) {
+            return null;
+        }
+
+        try {
+            $xml = new SimpleXMLElement($xmlData);
+            $queryResult = $xml->QueryResult ?? null;
+            if (!$queryResult) {
+                return null;
+            }
+            $resumptionToken = isset($queryResult->ResumptionToken) ? (string) $queryResult->ResumptionToken : null;
+
+            // Set the resumption token in the session
+            if ($resumptionToken) {
+                session(['resumptionToken' => $resumptionToken]);
+            }
+
+            return $resumptionToken;
+        } catch (Exception $e) {
+            Log::error('Error extracting resumption token: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+
+
+
 
     /**
      * Display the view for processing database items.
@@ -165,14 +246,12 @@ class ItemOperationsController extends Controller
                 if ($updateResult && $updateResult['status'] === 200) {
                     // Mark the item as processed and set the last operation ID
                     $item->status = 'processed';
-                    $item->last_operation_id = $operation->id;
-                    $item->save();
                 } else {
                     // Mark the item as failed
                     $item->status = 'failed';
-                    $item->last_operation_id = $operation->id;
-                    $item->save();
                 }
+                $item->last_operation_id = $operation->id;
+                $item->save();
             } catch (Exception $e) {
                 // Handle any exceptions and mark the item as failed
                 $item->status = 'failed';
@@ -219,6 +298,7 @@ class ItemOperationsController extends Controller
             'actionRoute' => $actionRoute
         ]);
     }
+
 
 
 }

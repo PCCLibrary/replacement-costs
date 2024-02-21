@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="operationType" value="{{ $operationType }}">
     <div class="col-12 col-md-2">
-        <label for="itemCount" class="col-form-label">Number of Items to {{ $operation }}:</label>
+        <label for="itemCount" class="col-form-label">Item count: {{ $operation }}:</label>
     </div>
     <div class="col-12 col-md-4">
         <select class="form-control" id="itemCount" name="itemCount">
@@ -18,6 +18,7 @@
         </select>
     </div>
     <div class="col-12 col-md-6">
-        <button type="submit" class="btn btn-primary">{{ $operation }} Items</button>
+        <button id="submit" type="submit" class="btn btn-primary">{{ $operation }} Items</button>
     </div>
+    <div class="col-12"><p class="mt-4 text-secondary">Number of items to retrieve in this operation. Alma analytics only allows multiples of 25.</p></div>
 </form>

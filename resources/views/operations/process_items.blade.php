@@ -10,10 +10,9 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <p class="lead">Process items with the Alma API to update replacement costs.</p>
-                    <p>Items with the status of 'new' are read from the application database, and used with the Alma
-                        holdings API to retrieve an Alma item. The replacement_cost field is updated, the data is
-                        reformatted, and then the change is saved in Alma using the Holdings API.</p>
+                    <p class="lead">Update replacement costs in Alma.</p>
+                    <p>Previously retrieved, stored items in the database, with the status of 'new' are processed, and then the updated items are saved in Alma using the Holdings API.</p>
+                    <p><strong>Note:</strong> This is a <i>slow</i> operation. Do not navigate away until the operation is done. 100 items takes about 8 minutes.</p>
                 </div>
             </div>
         </div>
@@ -22,6 +21,7 @@
     <div class="content px-3">
 
         @include('flash::message')
+
 
         <div class="clearfix"></div>
 
@@ -36,6 +36,7 @@
             </div>
         </div>
 
+        @include('components.spinner')
 
         @if(isset($processedItems) && count($processedItems) > 0)
             @include('components.items_table', [

@@ -1,11 +1,10 @@
 @if(isset($items) && count($items) > 0)
-    <div class="bg-light p-4 border-bottom">
-        <!-- Check if there are items to display -->
-        <h5>Retrieved Items</h5>
-        <p class="lead p-0 m-0">{{ count($items) }} Items retrieved from the Alma analytics Report.</p>
-    </div>
+{{--    <div class="alert alert-info p-4 ">--}}
+{{--        <!-- Check if there are items to display -->--}}
+{{--        <div class="lead p-0 m-0">{{ count($items) }} new items saved to the database.</div>--}}
+{{--    </div>--}}
 
-    <table class="table table-striped">
+    <table class="table table-striped mt-4">
         <thead>
         <tr>
             <th>Title</th>

@@ -89,6 +89,9 @@ class ItemRepository extends BaseRepository
         DB::beginTransaction();
 
         try {
+
+            Log::debug( "items in addOrUpdateItems: " . count($items));
+
             foreach ($items as $item) {
                 $formattedItem = [];
 
@@ -128,8 +131,11 @@ class ItemRepository extends BaseRepository
             Log::info($newlyAddedCount.' Items saved to the database. '.$alreadyExistsCount.' already exist.');
 
             // Flash the messages for user feedback
-            Flash::success( $newlyAddedCount . ' Items saved to the database.');
-            Flash::info($alreadyExistsCount . ' Items already exist in the database.');
+            Flash::info( $newlyAddedCount . ' Items saved to the database.');
+
+            if($alreadyExistsCount > 0) {
+                Flash::warning($alreadyExistsCount . ' Items already exist in the database.');
+            }
 
             return [
                 'success' => true,
@@ -174,7 +180,7 @@ class ItemRepository extends BaseRepository
      *
      * @return \Illuminate\Database\Eloquent\Collection Retrieved items.
      */
-    public function fetchItemsByStatus(string $status, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public function fetchItemsByStatus(string $status, int $limit = 500): \Illuminate\Database\Eloquent\Collection
     {
         return Item::where('status', $status)->limit($limit)->get();
     }

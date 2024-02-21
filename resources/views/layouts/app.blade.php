@@ -149,6 +149,28 @@
     $("input[data-bootstrap-switch]").each(function () {
         $(this).bootstrapSwitch('state', $(this).prop('checked'));
     });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Hide the spinner by default
+        let spinner = document.getElementById("spinner");
+        spinner.style.display = "none";
+
+        // Intercept form submission
+        document.querySelector("form").addEventListener("submit", function(event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+            alert('i been clicked');
+            // Show the spinner
+            spinner.style.display = "block";
+
+            // Delay form submission by 300 milliseconds
+            setTimeout(function() {
+                // Submit the form
+                event.target.submit();
+            }, 500);
+        });
+    });
+
 </script>
 
 @stack('third_party_scripts')

@@ -4,29 +4,32 @@ namespace App\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use SimpleXMLElement;
 
 class ItemImportService
 {
-    private $schema; // Property to store the schema
+    private $operationType; // Property to store the operation type
 
     /**
      * Parses the XML response and extracts data into an array of associative arrays.
      *
      * @param string $xmlString The XML response string.
+     * @param string $operationType The type of operation ("new" or "continue").
      * @return array An array of associative arrays containing the extracted data.
      * @throws Exception
      */
-    public function processXmlData($xmlString): array
+    public function processXmlData($xmlString, $operationType): array
     {
+        $this->operationType = $operationType;
         $xml = new SimpleXMLElement($xmlString);
 
         // Set the namespaces for XPath queries
         $ns = $xml->getNamespaces(true);
         $xml->registerXPathNamespace('ns', $ns['']);
 
-        // Extract and store the schema if it's not already set
-        if (!$this->schema) {
+        // Extract and store the schema if it's not already set for a new operation
+        if ($this->operationType === 'new') {
             $this->extractSchema($xml);
         }
 
@@ -37,7 +40,7 @@ class ItemImportService
     }
 
     /**
-     * Extracts the schema from the XML response and stores it.
+     * Extracts the schema from the XML response and stores it in the session.
      *
      * @param SimpleXMLElement $xml The XML response.
      */
@@ -49,7 +52,9 @@ class ItemImportService
             $columnHeading = (string) $element->attributes('saw-sql', true)['columnHeading'];
             $schema[] = ['name' => $columnName, 'columnHeading' => $columnHeading];
         }
-        $this->schema = $schema;
+
+        // Store the schema in the session
+        Session::put('schema', $schema);
     }
 
     /**
@@ -57,14 +62,22 @@ class ItemImportService
      *
      * @param SimpleXMLElement $xml The XML response.
      * @return array An array of associative arrays containing the extracted data.
+     * @throws Exception
      */
     private function extractData(SimpleXMLElement $xml): array
     {
+        // Retrieve the schema from the session
+        $schema = Session::get('schema');
+
+        if (!$schema) {
+            throw new Exception('Schema is not set.');
+        }
+
         $rowset = $xml->xpath('//ns:rowset/ns:Row');
         $data = [];
         foreach ($rowset as $row) {
             $rowData = [];
-            foreach ($this->schema as $column) {
+            foreach ($schema as $column) {
                 $columnName = $column['name'];
                 $columnHeading = $column['columnHeading'];
                 $value = isset($row->$columnName) ? (string) $row->$columnName : null; // Default to null if missing

@@ -22,6 +22,9 @@ class ItemOperationsController extends Controller
     protected ItemRepository $itemRepository;
     protected AlmaItemService $almaItemService;
 
+    // Default selected item count
+    private $defaultItemCount = '25';
+
     /**
      * Construct the ItemOperationsController.
      *
@@ -85,26 +88,40 @@ class ItemOperationsController extends Controller
             // Retrieve the selected item count from the form submission
             $itemCount = $request->input('itemCount');
 
-            // Retrieve the resumption token from the request (if present)
-            $resumptionToken = $request->input('resumptionToken');
-
             // Retrieve the operation type from the form submission
             $operationType = $request->input('operationType');
 
-            // Fetch XML data with the selected item count and resumption token (if present)
-            $xmlData = $this->fetchXmlService->fetchData($itemCount, $resumptionToken);
+            // Log the operation type
+            Log::info('Start operation type: ' . $operationType);
 
-            // Extract the resumption token from the XML data
-            $resumptionToken = $this->extractResumptionToken($xmlData);
+            // Fetch XML data based on operation type and parameters
+            if ($operationType === 'continue') {
+                $lastRetrieveOperation = Operation::where('operation_type', 'new')->orderBy('id', 'desc')->first();
+                if ($lastRetrieveOperation) {
+                    $itemCount = $lastRetrieveOperation->item_count;
+                } else {
+                    $itemCount = $this->defaultItemCount;
+                }
+                Log::debug('itemCount for continue: '. $itemCount);
+                // For "continue" operation, build query with resumptionToken and itemCount
+                $resumptionToken = $request->input('resumptionToken');
+                $xmlData = $this->fetchXmlService->fetchData($operationType, $itemCount, $resumptionToken);
+            } else {
+                Log::debug('itemCount for new: '. $itemCount);
+                // For "new" operation, build query with itemCount only
+                $xmlData = $this->fetchXmlService->fetchData($operationType, $itemCount, null);
+                // Extract the resumption token from the XML data
+                $resumptionToken = $this->extractResumptionToken($xmlData);
+            }
 
             // Parse XML data
-            $retrievedItems = $this->itemImportService->processXmlData($xmlData);
+            $retrievedItems = $this->itemImportService->processXmlData($xmlData,$operationType);
 
             // Store the operation details in the operations table
             $operation = Operation::create([
                 'operation_name' => 'Retrieve New Items',
                 'item_count' => count($retrievedItems),
-                'operation_type' => 'retrieve',
+                'operation_type' => $operationType,
             ]);
 
             // Pass operation ID to the item repository for storing items
@@ -124,7 +141,7 @@ class ItemOperationsController extends Controller
                 'actionRoute' => $actionRoute,
                 'isFinished' => $isFinished,
                 'resumptionToken' => $resumptionToken,
-                'operationType' => $operationType
+                'operationType' => 'continue'
             ]);
         } catch (Exception $e) {
             Log::error('Error fetching or processing data: ' . $e->getMessage());
@@ -134,9 +151,6 @@ class ItemOperationsController extends Controller
             return redirect()->route('retrieve-new-items', ['isFinished' => true, 'resumptionToken' => null]);
         }
     }
-
-
-
 
 
     /**
@@ -186,9 +200,6 @@ class ItemOperationsController extends Controller
             return null;
         }
     }
-
-
-
 
 
     /**
